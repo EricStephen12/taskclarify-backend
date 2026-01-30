@@ -1,11 +1,14 @@
 import { createClient } from '@supabase/supabase-js';
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || process.env.EXPO_PUBLIC_SUPABASE_URL || '';
+const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY || '';
+const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY || ''; // Fallback for stubs
 
-// Use placeholders during build time if environment variables are missing
-// to avoid "supabaseUrl is required" error during "next build"
+if (!supabaseUrl || !supabaseAnonKey) {
+  console.warn('[Supabase] Missing environment variables. Integration features will be limited.');
+}
+
 export const supabase = createClient(
   supabaseUrl || 'https://placeholder.supabase.co',
-  supabaseServiceKey || 'pbkdf2_placeholder' // service role key usually has a certain format but any string avoids the direct init error
+  supabaseServiceKey || 'placeholder'
 );

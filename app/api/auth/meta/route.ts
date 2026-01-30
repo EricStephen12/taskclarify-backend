@@ -5,19 +5,24 @@ const META_APP_ID = process.env.META_APP_ID;
 const META_REDIRECT_URI = process.env.META_REDIRECT_URI;
 
 export async function GET(req: NextRequest) {
-  const { authenticated, user } = await authenticateRequest(req);
-  if (!authenticated || !user) return unauthorizedResponse();
+  try {
+    const { authenticated, user } = await authenticateRequest(req);
+    if (!authenticated || !user) return unauthorizedResponse();
 
-  const scopes = [
-    "instagram_basic",
-    "instagram_content_publish",
-    "pages_manage_posts",
-    "pages_read_engagement",
-    "business_management",
-    "public_profile"
-  ];
+    if (!META_APP_ID || !META_REDIRECT_URI) {
+      throw new Error('Missing Meta configuration in environment');
+    }
 
-  const url = `https://www.facebook.com/v18.0/dialog/oauth?client_id=${META_APP_ID}&redirect_uri=${encodeURIComponent(META_REDIRECT_URI!)}&scope=${encodeURIComponent(scopes.join(","))}&state=${user.id}`;
+    const scopes = ["instagram_basic", "instagram_content_publish", "pages_show_list", "pages_read_engagement"];
 
-  return NextResponse.redirect(url);
+    const url = `https://www.facebook.com/v18.0/dialog/oauth?client_id=${META_APP_ID}&redirect_uri=${encodeURIComponent(META_REDIRECT_URI!)}&state=${user.id}&scope=${scopes.join(",")}`;
+
+    return NextResponse.redirect(url);
+  } catch (err: any) {
+    console.error('[Meta Auth Error]:', err.message);
+    return NextResponse.json(
+      { error: "Configuration Error", message: err.message },
+      { status: 500 }
+    );
+  }
 }

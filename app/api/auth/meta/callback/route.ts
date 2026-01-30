@@ -6,15 +6,15 @@ const META_APP_SECRET = process.env.META_APP_SECRET;
 const META_REDIRECT_URI = process.env.META_REDIRECT_URI;
 
 export async function GET(req: NextRequest) {
-  const { searchParams } = new URL(req.url);
-  const code = searchParams.get("code");
-  const userId = searchParams.get("state");
-
-  if (!code || !userId) {
-    return NextResponse.json({ error: "Missing code or state" }, { status: 400 });
-  }
-
   try {
+    const { searchParams } = new URL(req.url);
+    const code = searchParams.get("code");
+    const userId = searchParams.get("state");
+
+    if (!code || !userId) {
+      return NextResponse.json({ error: "Missing code or state" }, { status: 400 });
+    }
+
     const response = await fetch(`https://graph.facebook.com/v18.0/oauth/access_token?client_id=${META_APP_ID}&redirect_uri=${encodeURIComponent(META_REDIRECT_URI!)}&client_secret=${META_APP_SECRET}&code=${code}`);
 
     const tokens = await response.json();
@@ -51,8 +51,9 @@ export async function GET(req: NextRequest) {
     `, {
       headers: { "Content-Type": "text/html" },
     });
-  } catch (error: any) {
-    console.error("[Meta Auth Callback Error]:", error);
-    return NextResponse.json({ error: error.message || "Failed to exchange code" }, { status: 500 });
+  } catch (err: any) {
+    console.error("[Meta Auth Callback Error]:", err.message);
+    return NextResponse.json({ error: "Token Exchange Failed", message: err.message }, { status: 500 });
   }
 }
+

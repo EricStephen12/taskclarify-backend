@@ -6,17 +6,17 @@ const CANVA_CLIENT_SECRET = process.env.CANVA_CLIENT_SECRET;
 const CANVA_REDIRECT_URI = process.env.CANVA_REDIRECT_URI;
 
 export async function GET(req: NextRequest) {
-  const { searchParams } = new URL(req.url);
-  const code = searchParams.get("code");
-  const userId = searchParams.get("state");
-
-  if (!code || !userId) {
-    return NextResponse.json({ error: "Missing code or state" }, { status: 400 });
-  }
-
   try {
+    const { searchParams } = new URL(req.url);
+    const code = searchParams.get("code");
+    const userId = searchParams.get("state");
+
+    if (!code || !userId) {
+      return NextResponse.json({ error: "Missing code or state" }, { status: 400 });
+    }
+
     const authHeader = Buffer.from(`${CANVA_CLIENT_ID}:${CANVA_CLIENT_SECRET}`).toString("base64");
-    
+
     const response = await fetch("https://api.canva.com/rest/v1/oauth/token", {
       method: "POST",
       headers: {
@@ -64,8 +64,9 @@ export async function GET(req: NextRequest) {
     `, {
       headers: { "Content-Type": "text/html" },
     });
-  } catch (error: any) {
-    console.error("[Canva Auth Callback Error]:", error);
-    return NextResponse.json({ error: error.message || "Failed to exchange code" }, { status: 500 });
+  } catch (err: any) {
+    console.error("[Canva Auth Callback Error]:", err.message);
+    return NextResponse.json({ error: "Token Exchange Failed", message: err.message }, { status: 500 });
   }
 }
+

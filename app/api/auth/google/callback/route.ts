@@ -3,18 +3,18 @@ import { supabase } from "@/lib/supabase";
 import { NextRequest, NextResponse } from "next/server";
 
 export async function GET(req: NextRequest) {
-  const { searchParams } = new URL(req.url);
-  const code = searchParams.get("code");
-  const userId = searchParams.get("state"); // We passed user.id as state
-
-  if (!code || !userId) {
-    return NextResponse.json({ error: "Missing code or state" }, { status: 400 });
-  }
-
   try {
+    const { searchParams } = new URL(req.url);
+    const code = searchParams.get("code");
+    const userId = searchParams.get("state"); // We passed user.id as state
+
+    if (!code || !userId) {
+      return NextResponse.json({ error: "Missing code or state" }, { status: 400 });
+    }
+
     const oauth2Client = createOAuth2Client();
     const { tokens } = await oauth2Client.getToken(code);
-    
+
     // Store tokens in Supabase
     const { error } = await supabase
       .from("user_integrations")
@@ -48,8 +48,12 @@ export async function GET(req: NextRequest) {
     `, {
       headers: { "Content-Type": "text/html" },
     });
-  } catch (error) {
-    console.error("[Google Auth Callback Error]:", error);
-    return NextResponse.json({ error: "Failed to exchange code for tokens" }, { status: 500 });
+  } catch (err: any) {
+    console.error("[Google Auth Callback Error]:", err.message);
+    return NextResponse.json(
+      { error: "Token Exchange Failed", message: err.message },
+      { status: 500 }
+    );
   }
 }
+
