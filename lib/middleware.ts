@@ -7,13 +7,20 @@ const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
 export async function authenticateRequest(req: NextRequest) {
     const authHeader = req.headers.get('authorization');
 
-    if (!authHeader || !authHeader.startsWith('Bearer ')) {
+    let token = '';
+
+    if (authHeader && authHeader.startsWith('Bearer ')) {
+        token = authHeader.replace('Bearer ', '');
+    } else {
+        // Fallback to query parameter for browser redirects
+        token = req.nextUrl.searchParams.get('token') || '';
+    }
+
+    if (!token) {
         return { authenticated: false, user: null };
     }
 
-    const token = authHeader.replace('Bearer ', '');
     const supabase = createClient(supabaseUrl, supabaseAnonKey);
-
     const { data: { user }, error } = await supabase.auth.getUser(token);
 
     if (error || !user) {
