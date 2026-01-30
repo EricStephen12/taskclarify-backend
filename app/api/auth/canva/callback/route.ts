@@ -11,8 +11,18 @@ export async function GET(req: NextRequest) {
     const code = searchParams.get("code");
     const userId = searchParams.get("state");
 
-    if (!code || !userId) {
-      return NextResponse.json({ error: "Missing code or state" }, { status: 400 });
+    // Debug logging for missing params
+    console.log('[Canva Callback] Full URL:', req.url);
+    console.log('[Canva Callback] Search Params:', Object.fromEntries(searchParams.entries()));
+
+    if (!code) {
+      console.error('[Canva Callback] Missing code parameter');
+      return NextResponse.json({ error: "Missing 'code' parameter", params: Object.fromEntries(searchParams.entries()) }, { status: 400 });
+    }
+
+    if (!userId) {
+      console.error('[Canva Callback] Missing state (userId) parameter');
+      return NextResponse.json({ error: "Missing 'state' parameter", params: Object.fromEntries(searchParams.entries()) }, { status: 400 });
     }
 
     const codeVerifier = req.cookies.get("canva_code_verifier")?.value;
