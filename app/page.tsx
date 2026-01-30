@@ -19,8 +19,15 @@ export default function Home() {
                 <h3 style={{ margin: '0 0 1rem 0' }}>Environment Check</h3>
                 <ul style={{ listStyle: 'none', padding: 0 }}>
                     {Object.entries(diagnostics).map(([key, present]) => (
-                        <li key={key} style={{ marginBottom: '0.5rem', color: present ? '#059669' : '#dc2626' }}>
-                            {present ? '✅' : '❌'} {key}: {present ? 'Detected' : 'MISSING'}
+                        <li key={key} style={{ marginBottom: '1rem', borderBottom: '1px solid #eee', paddingBottom: '0.5rem' }}>
+                            <div style={{ color: present ? '#059669' : '#dc2626', fontWeight: 'bold' }}>
+                                {present ? '✅' : '❌'} {key}: {present ? 'Detected' : 'MISSING'}
+                            </div>
+                            {present && key.toLowerCase().includes('redirect') && (
+                                <code style={{ fontSize: '0.8rem', display: 'block', marginTop: '0.25rem', background: '#fff', padding: '4px' }}>
+                                    {process.env[key.toUpperCase() === 'GOOGLEID' ? 'GOOGLE_CLIENT_ID' : key.toUpperCase() === 'CANVAID' ? 'CANVA_CLIENT_ID' : key === 'googleRedirect' ? 'GOOGLE_REDIRECT_URI' : 'CANVA_REDIRECT_URI']}
+                                </code>
+                            )}
                         </li>
                     ))}
                 </ul>
