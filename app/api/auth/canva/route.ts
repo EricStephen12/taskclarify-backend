@@ -33,7 +33,6 @@ export async function GET(req: NextRequest) {
     const scopes = [
       "design:content:read",
       "design:content:write",
-      "design:meta:read",
       "asset:read",
       "asset:write"
     ];
