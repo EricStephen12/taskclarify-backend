@@ -11,6 +11,29 @@ export async function GET(req: NextRequest) {
     const code = searchParams.get("code");
     const userId = searchParams.get("state");
 
+    const authError = searchParams.get("error");
+    const errorDescription = searchParams.get("error_description");
+
+    if (authError) {
+      console.error('[Canva Callback] OAuth Error:', { error: authError, errorDescription });
+      return new NextResponse(`
+        <html>
+          <body style="font-family: sans-serif; display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; background: #fff1f2; color: #be123c;">
+            <div style="text-align: center; max-width: 600px; padding: 2rem; background: white; border-radius: 12px; box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1);">
+              <h1 style="margin: 0 0 1rem 0;">Connection Failed</h1>
+              <p><strong>Error:</strong> ${authError}</p>
+              <p style="color: #666; margin: 1rem 0;">${errorDescription || 'No description provided.'}</p>
+              <p style="font-size: 0.9rem; margin-top: 2rem; color: #888;">Please verify that the required scopes are enabled in your Canva Developer Portal.</p>
+            </div>
+            <script>
+              // Optional: Close window automatically if opened as popup
+              // setTimeout(() => window.close(), 10000);
+            </script>
+          </body>
+        </html>
+      `, { headers: { "Content-Type": "text/html" } });
+    }
+
     // Debug logging for missing params
     console.log('[Canva Callback] Full URL:', req.url);
     console.log('[Canva Callback] Search Params:', Object.fromEntries(searchParams.entries()));
