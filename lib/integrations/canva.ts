@@ -87,11 +87,18 @@ export class CanvaIntegration {
 
     const body: any = {
       title: title || "New TaskClarify Design",
-      design_type
     };
 
     if (assetId) {
+      // ASSET-FIRST STRATEGY: 
+      // If we have an asset, create the design FROM the asset.
+      // Do NOT send design_type (preset/custom) as it conflicts/overrides the asset.
       body.asset_id = assetId;
+      console.log('[Canva Integration] Creating design FROM ASSET:', assetId);
+    } else {
+      // PRESET/CUSTOM STRATEGY:
+      // Only send design_type if we are NOT starting from an asset.
+      body.design_type = design_type;
     }
 
     console.log('[Canva Integration] Creating design with body:', JSON.stringify(body));
@@ -119,10 +126,12 @@ export class CanvaIntegration {
       throw new Error(data.message || `Canva API error: ${response.status} - ${rawResponse}`);
     }
 
+    const design = data.design || data;
+
     return {
       success: true,
-      url: data.url,
-      id: data.id,
+      url: design.url || design.urls?.edit_url,
+      id: design.id,
     };
   }
 }
