@@ -139,8 +139,8 @@ async function generateLayout(
     dimensions: { width: number; height: number },
     imageUrl: string
 ): Promise<any> {
-    const GROQ_API_KEY = process.env.GROQ_API_KEY;
-    if (!GROQ_API_KEY) throw new Error("GROQ_API_KEY not configured");
+    const GROQ_API_KEY = process.env.GROQ_API_KEY || process.env.EXPO_PUBLIC_GROQ_API_KEY;
+    if (!GROQ_API_KEY) throw new Error("GROQ_API_KEY not configured (checked GROQ_API_KEY and EXPO_PUBLIC_GROQ_API_KEY)");
 
     const theme = detectTheme(prompt);
     const palette = COLOR_PALETTES[theme as keyof typeof COLOR_PALETTES] || COLOR_PALETTES.mysterious;
