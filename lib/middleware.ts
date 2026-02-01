@@ -30,7 +30,9 @@ export async function authenticateRequest(req: NextRequest) {
         const { data: { user }, error } = await supabase.auth.getUser(token);
 
         if (error || !user) {
-            console.error('[Auth] Supabase authentication failed:', error?.message);
+            console.error('[Auth] Supabase authentication failed:', error?.message || 'User not found');
+            console.log('[Auth] Attempted with Token (first 10 chars):', token.substring(0, 10) + '...');
+            console.log('[Auth] Supabase URL:', supabaseUrl);
             return { authenticated: false, user: null };
         }
 
