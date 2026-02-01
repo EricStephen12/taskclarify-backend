@@ -10,5 +10,5 @@ if (!supabaseUrl || !supabaseAnonKey) {
 
 export const supabase = createClient(
   supabaseUrl || 'https://placeholder.supabase.co',
-  supabaseServiceKey || 'placeholder'
+  supabaseServiceKey || supabaseAnonKey || 'placeholder'
 );
