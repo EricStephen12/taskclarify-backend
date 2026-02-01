@@ -102,8 +102,9 @@ async function generateImage(visualPrompt: string): Promise<string> {
  * Extract visual description from user prompt
  */
 function extractVisualDescription(prompt: string): string {
-    // For now, use the entire prompt. Later, we can use Groq to extract just the visual part.
-    return `${prompt}, professional product photography, high quality, 8k, dramatic lighting`;
+    // CRITICAL: Explicitly forbid text. Pollinations.ai is prone to adding gibberish text if keywords like "flyer" or "poster" are present.
+    const cleanPrompt = prompt.replace(/flyer|poster|card|text|words|letters/gi, '').trim();
+    return `${cleanPrompt}, clean background, artistic illustration, professional product photography, high quality, 8k, dramatic lighting, photographic style, photorealistic, NO TEXT, NO LETTERS, NO WORDS, NO LABELS, NO BRANDING, EMPTY BACKGROUND FOR TEXT OVERLAY`;
 }
 
 /**
@@ -123,11 +124,13 @@ function extractTitle(prompt: string): string {
  */
 function detectTheme(prompt: string): string {
     const lower = prompt.toLowerCase();
+    if (lower.includes('gold') || lower.includes('luxury') || lower.includes('midnight')) return 'midnight_gold';
+    if (lower.includes('leaf') || lower.includes('organic') || lower.includes('nature') || lower.includes('green')) return 'organic_leaf';
+    if (lower.includes('brutalist') || lower.includes('bold') || lower.includes('yellow')) return 'neo_brutalist';
     if (lower.includes('mysterious') || lower.includes('dark') || lower.includes('space')) return 'mysterious';
-    if (lower.includes('energetic') || lower.includes('vibrant') || lower.includes('neon')) return 'energetic';
     if (lower.includes('professional') || lower.includes('corporate') || lower.includes('business')) return 'professional';
     if (lower.includes('warm') || lower.includes('cozy') || lower.includes('friendly')) return 'warm';
-    return 'mysterious'; // Default
+    return 'midnight_gold'; // Default to a premium look
 }
 
 /**
@@ -145,58 +148,70 @@ async function generateLayout(
     const theme = detectTheme(prompt);
     const palette = COLOR_PALETTES[theme as keyof typeof COLOR_PALETTES] || COLOR_PALETTES.mysterious;
 
-    const systemPrompt = `You are a professional layout designer. Generate a JSON layout for a ${template}.
+    const systemPrompt = `You are a world-class graphic designer. Generate a high-end JSON layout for a ${template}.
+Focus on: **Compositional Awareness**, **Negative Space**, and **Visual Balance**.
 
-CRITICAL RULES:
-1. Return ONLY valid JSON. No markdown, no explanations.
-2. Use the provided color palette and dimensions.
-3. Position elements so they don't overlap awkwardly.
-4. Use the LAYOUT_PATTERNS as a guide for positioning.
-5. Keep text concise and impactful.
+DESIGNER MINDSET:
+1. **IDENTIFY NEGATIVE SPACE**: Professional designers find the empty areas of an image and place text there. Do not cover the main subject (e.g., if there is a car or person in the center, use "leftColumn" or "rightColumn").
+2. **GRID ALIGNMENT**: Snap elements to the grid patterns provided below. Do not use random coordinates.
+3. **TYPOGRAPHY HIERARCHY**: 
+   - H1: Giant (120-160px), ExtraBold, tracking: 4.
+   - H2: Medium (60px), Medium weight, tracking: 2.
+   - Body: Small (40px), Regular, tracking: 1.
+4. **CONTRAST**: Always place a "shape" (id: "scrim") with a dark semi-transparent color behind text if it's over a photographic background.
+5. **ASPECT RATIO**: Canvas is ${dimensions.width}x${dimensions.height}.
 
-Available Layout Patterns:
+GRID PATTERNS:
 ${JSON.stringify(LAYOUT_PATTERNS, null, 2)}
 
-Color Palette (${theme}):
-${JSON.stringify(palette, null, 2)}
+Return ONLY valid JSON. No markdown.
 
-Canvas Dimensions:
-${JSON.stringify(dimensions, null, 2)}`;
+Color Palette (${theme}):
+${JSON.stringify(palette, null, 2)}`;
 
     const userPrompt = `Design a ${template} for: "${prompt}"
-
-Background image URL: ${imageUrl}
-
-Return JSON with this structure:
-{
-  "backgroundColor": "${palette.bg}",
-  "elements": [
-    {
-      "id": "bg_image",
-      "type": "image",
-      "src": "${imageUrl}",
-      "rect": { "x": 0, "y": 0, "width": ${dimensions.width}, "height": ${dimensions.height} },
-      "style": { "opacity": 0.85 },
-      "zIndex": 0
-    },
-    {
-      "id": "title",
-      "type": "text",
-      "content": "YOUR TITLE HERE",
-      "rect": { "x": 60, "y": 200, "width": ${dimensions.width - 120}, "height": 300 },
-      "style": {
-        "fontSize": 88,
-        "fontWeight": "800",
-        "color": "${palette.primary}",
-        "textAlign": "center",
-        "letterSpacing": 8,
-        "textShadow": "0px 4px 20px rgba(0,0,0,0.8)"
-      },
-      "zIndex": 10
-    }
-    // Add more elements as needed (subtitle, CTA button, etc.)
-  ]
-}`;
+ 
+ Background image URL: ${imageUrl}
+ 
+ Return JSON with this structure:
+ {
+   "backgroundColor": "${palette.bg}",
+   "elements": [
+     {
+       "id": "bg_image",
+       "type": "image",
+       "src": "${imageUrl}",
+       "rect": { "x": 0, "y": 0, "width": ${dimensions.width}, "height": ${dimensions.height} },
+       "style": { "opacity": 0.95 },
+       "zIndex": 0
+     },
+     {
+       "id": "text_backing",
+       "type": "shape",
+       "shape": "rounded_rect",
+       "rect": { "x": 80, "y": 150, "width": ${dimensions.width - 160}, "height": 400 },
+       "style": { "backgroundColor": "rgba(0,0,0,0.4)", "borderRadius": 40 },
+       "zIndex": 5
+     },
+     {
+       "id": "title",
+       "type": "text",
+       "content": "INSERT_CLEAN_TITLE",
+       "rect": { "x": 100, "y": 200, "width": ${dimensions.width - 200}, "height": 200 },
+       "style": {
+         "fontSize": 120,
+         "fontWeight": "900",
+         "color": "${palette.primary}",
+         "textAlign": "center",
+         "letterSpacing": 4,
+         "textShadow": "0px 4px 30px rgba(0,0,0,0.9)"
+       },
+       "zIndex": 10
+     }
+   ]
+ }
+ 
+ IMPORTANT: Output ONLY the JSON. Do not use the words "flyer" or "poster" in your id or content fields.`;
 
     const response = await fetch("https://api.groq.com/openai/v1/chat/completions", {
         method: "POST",

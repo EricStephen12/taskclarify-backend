@@ -10,14 +10,16 @@
 // ============================================================================
 
 export const DESIGN_DIMENSIONS: Record<string, { width: number; height: number }> = {
-    "poster": { width: 1080, height: 1920 },      // Vertical poster (9:16)
-    "flyer": { width: 816, height: 1056 },        // Standard US Letter portrait
-    "card": { width: 1500, height: 1050 },        // 5x7 Landscape Card
+    "poster": { width: 1080, height: 1920 },
+    "flyer": { width: 816, height: 1056 },
+    "magazine": { width: 2480, height: 3508 },    // High-res A4 Magazine
+    "magazine_cover": { width: 1200, height: 1600 }, // Standard digital magazine
+    "card": { width: 1500, height: 1050 },
     "birthday_card": { width: 1500, height: 1050 },
-    "social": { width: 1080, height: 1080 },      // Square Social Media Post
+    "social": { width: 1080, height: 1080 },
     "instagram": { width: 1080, height: 1080 },
-    "story": { width: 1080, height: 1920 },       // Instagram/FB Story
-    "banner": { width: 1920, height: 1080 },      // Horizontal banner (16:9)
+    "story": { width: 1080, height: 1920 },
+    "banner": { width: 1920, height: 1080 },
 };
 
 // ============================================================================
@@ -38,8 +40,10 @@ export interface TextStyle {
     textAlign?: 'left' | 'center' | 'right';
     letterSpacing?: number;
     lineHeight?: number;
-    textShadow?: string; // CSS-like: "0px 4px 20px rgba(0,0,0,0.5)"
-    fontFamily?: string; // Default: 'System' (uses device default)
+    textShadow?: string;
+    fontFamily?: string;
+    rotation?: number; // Degrees (e.g., 90)
+    transform?: string; // CSS-like transform string (legacy support)
 }
 
 export interface ShapeStyle {
@@ -52,12 +56,21 @@ export interface ShapeStyle {
     shadowRadius?: number;
     shadowOffset?: { x: number; y: number };
     opacity?: number;
+    rotation?: number;
+    gradient?: {
+        colors: string[]; // ['#ff0000', '#0000ff']
+        start?: { x: number; y: number };
+        end?: { x: number; y: number };
+    };
 }
 
 export interface ImageStyle {
     opacity?: number;
     borderRadius?: number;
     resizeMode?: 'cover' | 'contain' | 'stretch';
+    rotation?: number;
+    blur?: number; // Blur radius in pixels
+    grayscale?: number; // 0-1
 }
 
 // ============================================================================
@@ -143,36 +156,36 @@ export function validateBlueprint(blueprint: any): blueprint is DesignBlueprint 
  * Common layout patterns the AI can reference
  */
 export const LAYOUT_PATTERNS = {
-    // Centered title at top
-    heroTitle: (canvasWidth: number): Rect => ({
-        x: 60,
-        y: 200,
-        width: canvasWidth - 120,
+    // Grid: Left Column (1/3 width)
+    leftColumn: (canvasHeight: number): Rect => ({
+        x: 80,
+        y: 80,
+        width: 300,
+        height: canvasHeight - 160
+    }),
+
+    // Grid: Right Column (last 1/3 width)
+    rightColumn: (canvasWidth: number, canvasHeight: number): Rect => ({
+        x: canvasWidth - 380,
+        y: 80,
+        width: 300,
+        height: canvasHeight - 160
+    }),
+
+    // Lower-Third text block
+    lowerThird: (canvasWidth: number, canvasHeight: number): Rect => ({
+        x: 80,
+        y: canvasHeight - 500,
+        width: canvasWidth - 160,
         height: 300
     }),
 
-    // Subtitle below hero
-    subtitle: (canvasWidth: number): Rect => ({
-        x: 60,
-        y: 520,
-        width: canvasWidth - 120,
-        height: 80
-    }),
-
-    // CTA button at bottom
-    ctaButton: (canvasWidth: number, canvasHeight: number): Rect => ({
-        x: (canvasWidth - 400) / 2,
-        y: canvasHeight - 320,
-        width: 400,
-        height: 80
-    }),
-
-    // Full background image
-    fullBackground: (canvasWidth: number, canvasHeight: number): Rect => ({
-        x: 0,
-        y: 0,
-        width: canvasWidth,
-        height: canvasHeight
+    // Centered title at top
+    heroTitle: (canvasWidth: number): Rect => ({
+        x: 80,
+        y: 120,
+        width: canvasWidth - 160,
+        height: 300
     })
 };
 
@@ -186,11 +199,23 @@ export const COLOR_PALETTES = {
         accent: '#8B5CF6',
         secondary: '#A78BFA'
     },
-    energetic: {
-        bg: '#000000',
-        primary: '#00FF7F',
-        accent: '#FF1493',
-        secondary: '#FFD700'
+    midnight_gold: {
+        bg: '#0F172A',
+        primary: '#F1F5F9',
+        accent: '#FACC15',
+        secondary: '#EAB308'
+    },
+    organic_leaf: {
+        bg: '#064e3b',
+        primary: '#ecfdf5',
+        accent: '#10b981',
+        secondary: '#34d399'
+    },
+    neo_brutalist: {
+        bg: '#facc15',
+        primary: '#000000',
+        accent: '#f472b6',
+        secondary: '#fb923c'
     },
     professional: {
         bg: '#1e293b',
