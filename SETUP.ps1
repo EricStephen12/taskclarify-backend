@@ -32,8 +32,10 @@ if (Test-Path ".env.local") {
     Copy-Item ".env.example" ".env.local"
     Write-Host "   ✅ Created .env.local from template" -ForegroundColor Green
     Write-Host ""
-    Write-Host "   ⚠️  IMPORTANT: Edit .env.local and add your Supabase credentials!" -ForegroundColor Yellow
-    Write-Host "   Copy from: taskclarify-mobile/.env.local" -ForegroundColor Yellow
+    Write-Host "   ⚠️  IMPORTANT: Edit .env.local and add your credentials!" -ForegroundColor Yellow
+    Write-Host "   Required: SUPABASE_URL, SUPABASE_ANON_KEY, GROQ_API_KEY" -ForegroundColor Yellow
+    Write-Host "   Copy Supabase from: taskclarify-mobile/.env.local" -ForegroundColor Yellow
+    Write-Host "   Get Groq from: https://console.groq.com/" -ForegroundColor Yellow
 }
 Write-Host ""
 

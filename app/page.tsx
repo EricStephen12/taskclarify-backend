@@ -1,7 +1,7 @@
 export default function Home() {
     const diagnostics = {
-        supabaseUrl: !!(process.env.NEXT_PUBLIC_SUPABASE_URL || process.env.EXPO_PUBLIC_SUPABASE_URL),
-        supabaseKey: !!(process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY),
+        supabaseUrl: !!process.env.NEXT_PUBLIC_SUPABASE_URL,
+        supabaseKey: !!process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
         googleId: !!process.env.GOOGLE_CLIENT_ID,
         googleSecret: !!process.env.GOOGLE_CLIENT_SECRET,
         googleRedirect: !!process.env.GOOGLE_REDIRECT_URI,
