@@ -223,11 +223,30 @@ Return JSON with this structure:
     const data = await response.json();
     const content = data.choices[0]?.message?.content || "{}";
 
-    // Parse the JSON response
+    // Parse the JSON response with robust extraction
     try {
-        return JSON.parse(content);
+        const cleaned = extractJson(content);
+        return JSON.parse(cleaned);
     } catch (e) {
         console.error("[Layout Parse Error]:", content);
         throw new Error("Failed to parse layout JSON from AI");
     }
+}
+
+/**
+ * Robustly extracts JSON from potentially messy AI output
+ */
+function extractJson(text: string): string {
+    // 1. Try to find content between triple backticks
+    const match = text.match(/```(?:json)?([\s\S]*?)```/);
+    if (match) return match[1].trim();
+
+    // 2. Try to find the first '{' and last '}'
+    const firstBrace = text.indexOf('{');
+    const lastBrace = text.lastIndexOf('}');
+    if (firstBrace !== -1 && lastBrace !== -1) {
+        return text.substring(firstBrace, lastBrace + 1).trim();
+    }
+
+    return text.trim();
 }
